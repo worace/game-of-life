@@ -7,10 +7,13 @@
 (defn rand-bool []
   (= 1 (rand-int 2)))
 
+(defn vec-nest [matrix]
+  (vec (map vec matrix)))
+
 (defn grid [size]
-  (vec (for [y (range size)]
-         (vec (for [x (range size)]
-                {:x x :y y :live (rand-bool)})))))
+  (vec-nest (for [y (range size)]
+              (for [x (range size)]
+                {:x x :y y :live false}))))
 
 (defn grid-fetch [g coords]
   (get-in g (reverse coords)))
@@ -44,50 +47,9 @@
           (neighbors g [(:x cell) (:y cell)]))))
 
 (defn tick [g]
-  (vec (map (fn [row]
-              (vec (map (partial next-gen g) row)))
-            g)))
-
-(deftest test-ticking-grid
-  (let [g (assoc-in (grid 3) [0 0 :live] true)
-        g2 (tick g)]
-    (is (not (get-in g2 [0 0 :live])))))
-
-(deftest test-next-state
-  (is (not (next-state {:x 0 :y 0 :live true} #{})))
-  (is (next-state {:x 0 :y 0 :live true}
-                  #{{:id 1 :live true} {:id 2 :live true}}))
-  (is (next-state {:x 0 :y 0 :live true}
-                  #{{:id 1 :live true} {:id 2 :live true} {:id 3 :live true}}))
-  (is (not (next-state {:x 0 :y 0 :live true}
-                       #{{:id 1 :live true}
-                         {:id 2 :live true}
-                         {:id 3 :live true}
-                         {:id 4 :live true}})))
-  (is (not (next-state {:x 0 :y 0 :live false}
-                       #{{:id 1 :live true} {:id 2 :live true}}))))
-
-(deftest test-nextgen
-  (testing "finds next value for a cell given grid"
-    (let [g [[{:x 0 :y 0 :live true} {:x 1 :y 0 :live true}]
-             [{:x 0 :y 1 :live true} {:x 1 :y 1 :live true}]]]
-      (is (= {:x 0 :y 0 :live true} (next-gen g (first (first g))))))))
-
-(deftest test-make-grid
-  (is (= 10 (count (grid 10))))
-  (is (= (take 10 (repeat 10)) (map count (grid 10)))))
-
-(deftest test-neighbors
-  (is (= 8 (count (neighbors (grid 4) [1 1]))))
-  (is (= #{[0 0] [1 0] [2 0]
-           [0 1]       [2 1]
-           [0 2] [1 2] [2 2]})))
-
-(deftest test-retrieving-coord
-  (is (= 1 (:x (grid-fetch (grid 4) [1 0]))))
-  (is (= 1 (:y (grid-fetch (grid 4) [0 1])))))
-
-(run-tests)
+  (vec-nest (map (fn [row]
+                   (map (partial next-gen g) row))
+                 g)))
 
 (defn print-grid [g]
    (join "\n"
