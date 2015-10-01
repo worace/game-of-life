@@ -1,23 +1,32 @@
 (ns game-of-life.core
   (:require [clojure.test :refer :all]
             [clojure.tools.namespace.repl :refer [refresh]]
+            [clojure.string :refer [join]]
             [clojure.repl :refer [doc]]))
+
+(defn rand-bool []
+  (= 1 (rand-int 2)))
 
 (defn grid [size]
   (vec (for [y (range size)]
          (vec (for [x (range size)]
-                {:x x :y y :live false})))))
+                {:x x :y y :live (rand-bool)})))))
 
 (defn grid-fetch [g coords]
   (get-in g (reverse coords)))
 
-(defn neighbors [grid coords]
+(defn neighbor-coords [coords]
   (clojure.set/difference
    (into #{}
         (for [x-shift [1 0 -1]
               y-shift [1 0 -1]]
           (map + coords [x-shift y-shift])))
    #{coords}))
+
+(defn neighbors [grid coords]
+  (filter
+   (comp not nil?)
+   (map (partial get-in grid) (map reverse (neighbor-coords coords)))))
 
 (defn next-state [cell neighbors]
   (let [live-count (count (filter :live neighbors))]
@@ -28,9 +37,11 @@
       (> live-count 3) false)))
 
 (defn next-gen [g cell]
-  (next-state
-   cell
-   (neighbors g [(:x cell) (:y cell)])))
+  (assoc cell
+         :live
+         (next-state
+          cell
+          (neighbors g [(:x cell) (:y cell)]))))
 
 (defn tick [g]
   (vec (map (fn [row]
@@ -56,6 +67,12 @@
   (is (not (next-state {:x 0 :y 0 :live false}
                        #{{:id 1 :live true} {:id 2 :live true}}))))
 
+(deftest test-nextgen
+  (testing "finds next value for a cell given grid"
+    (let [g [[{:x 0 :y 0 :live true} {:x 1 :y 0 :live true}]
+             [{:x 0 :y 1 :live true} {:x 1 :y 1 :live true}]]]
+      (is (= {:x 0 :y 0 :live true} (next-gen g (first (first g))))))))
+
 (deftest test-make-grid
   (is (= 10 (count (grid 10))))
   (is (= (take 10 (repeat 10)) (map count (grid 10)))))
@@ -71,3 +88,20 @@
   (is (= 1 (:y (grid-fetch (grid 4) [0 1])))))
 
 (run-tests)
+
+(defn print-grid [g]
+   (join "\n"
+        (map (fn [r]
+         (apply str (map (fn [c]
+                           (if (:live c) "X" "_"))
+                         r)))
+       g)))
+
+(defn run-sim [ticks grid-size]
+  (loop [ticks ticks
+         g (grid grid-size)]
+    (when (> ticks 0)
+      (do
+        (println (str "i: " ticks "\n" "**********************************\n" (print-grid g)))
+        (Thread/sleep 30)
+        (recur (dec ticks) (tick g))))))
