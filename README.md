@@ -1,14 +1,3 @@
-# game-of-life
+## Game of Life
 
-A Clojure library designed to ... well, that part is up to you.
-
-## Usage
-
-FIXME
-
-## License
-
-Copyright © 2015 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Clojure implementation of [conway's game of life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
