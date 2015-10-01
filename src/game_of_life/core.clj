@@ -27,10 +27,10 @@
           (map + coords [x-shift y-shift])))
    #{coords}))
 
-(defn neighbors [grid coords]
+(defn neighbors [grid {:keys [x y]}]
   (filter
    (comp not nil?)
-   (map (partial get-in grid) (map reverse (neighbor-coords coords)))))
+   (map (partial get-in grid) (map reverse (neighbor-coords [x y])))))
 
 (defn next-state [cell neighbors]
   (let [live-count (count (filter :live neighbors))]
@@ -45,7 +45,7 @@
          :live
          (next-state
           cell
-          (neighbors g [(:x cell) (:y cell)]))))
+          (neighbors g cell))))
 
 (defn tick [g]
   (vec-nest (map (fn [row]

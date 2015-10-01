@@ -43,11 +43,11 @@
          (neighbor-coords [1 1]))))
 
 (deftest test-neighbors
-  (is (= 8 (count (neighbors (grid 3) [1 1]))))
+  (is (= 8 (count (neighbors (grid 3) {:x 1 :y 1}))))
   (is (= one-one-neighbors
          (into #{}
                (map (fn [{:keys [x y]}] [x y])
-                    (neighbors (grid 3) [1 1]))))))
+                    (neighbors (grid 3) {:x 1 :y 1}))))))
 
 (deftest test-retrieving-coord
   (is (= 1 (:x (grid-fetch (grid 4) [1 0]))))
