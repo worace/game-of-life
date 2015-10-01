@@ -10,10 +10,11 @@
 (defn vec-nest [matrix]
   (vec (map vec matrix)))
 
-(defn grid [size]
-  (vec-nest (for [y (range size)]
-              (for [x (range size)]
-                {:x x :y y :live false}))))
+(defn grid
+  ([size] (grid size false))
+  ([size rand] (vec-nest (for [y (range size)]
+                           (for [x (range size)]
+                             {:x x :y y :live (if rand (rand-bool) false)})))))
 
 (defn grid-fetch [g coords]
   (get-in g (reverse coords)))
@@ -61,9 +62,8 @@
 
 (defn run-sim [ticks grid-size]
   (loop [ticks ticks
-         g (grid grid-size)]
+         g (grid grid-size true)]
     (when (> ticks 0)
       (do
         (println (str "i: " ticks "\n" "**********************************\n" (print-grid g)))
-        (Thread/sleep 30)
         (recur (dec ticks) (tick g))))))

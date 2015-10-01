@@ -7,6 +7,11 @@
   (is (= (take 10 (repeat 10)) (map count (grid 10))))
   (is (every? (comp not :live) (flatten (grid 5)))))
 
+(deftest test-rand-grid
+  (testing "generates rand grid when given rand flag"
+    (is (not (every? :live (flatten (grid 5 true)))))
+    (is (not (every? (comp not :live) (flatten (grid 5 true)))))))
+
 (deftest test-next-state
   (is (not (next-state {:x 0 :y 0 :live true} #{})))
   (is (next-state {:x 0 :y 0 :live true}
@@ -27,11 +32,22 @@
              [{:x 0 :y 1 :live true} {:x 1 :y 1 :live true}]]]
       (is (= {:x 0 :y 0 :live true} (next-gen g (first (first g))))))))
 
+(def one-one-neighbors
+  #{[0 0] [1 0] [2 0]
+    [0 1]       [2 1]
+    [0 2] [1 2] [2 2]})
+
+(deftest test-neighbor-coords
+  (is (= 8 (count (neighbor-coords [1 1]))))
+  (is (= one-one-neighbors
+         (neighbor-coords [1 1]))))
+
 (deftest test-neighbors
-  (is (= 8 (count (neighbors (grid 4) [1 1]))))
-  (is (= #{[0 0] [1 0] [2 0]
-           [0 1]       [2 1]
-           [0 2] [1 2] [2 2]})))
+  (is (= 8 (count (neighbors (grid 3) [1 1]))))
+  (is (= one-one-neighbors
+         (into #{}
+               (map (fn [{:keys [x y]}] [x y])
+                    (neighbors (grid 3) [1 1]))))))
 
 (deftest test-retrieving-coord
   (is (= 1 (:x (grid-fetch (grid 4) [1 0]))))
